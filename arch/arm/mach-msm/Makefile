@@ -293,8 +293,6 @@ obj-y   += gpio-fsm9xxx.o
 else
 ifdef CONFIG_MSM_V2_TLMM
 obj-y	+= gpio-v2.o
-else
-obj-y	+= gpio.o
 endif
 endif
 
