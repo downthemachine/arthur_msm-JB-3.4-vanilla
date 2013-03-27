@@ -198,6 +198,7 @@ static int pm8058_gpios_init(void)
 		},
 	};
 
+#if 0
 	struct pm8xxx_gpio_init_info sdc4_pwr_en = {
 		PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_SDC4_PWR_EN_N),
 		{
@@ -210,7 +211,7 @@ static int pm8058_gpios_init(void)
 			.output_value   = 0,
 		},
 	};
-
+#endif
 	struct pm8xxx_gpio_init_info haptics_enable = {
 		PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_HAP_ENABLE),
 		{
@@ -336,6 +337,8 @@ static int pm8058_gpios_init(void)
 		}
 		gpio_set_value_cansleep(sdc4_en.gpio, 0);
 	}
+
+#if 0
 	/* FFA -> gpio_25 controls vdd of sdcc4 */
 	else {
 		/* SCD4 gpio_25 */
@@ -353,7 +356,7 @@ static int pm8058_gpios_init(void)
 			return rc;
 		}
 	}
-
+#endif
 	return 0;
 }
 
@@ -744,8 +747,10 @@ static struct matrix_keymap_data surf_keymap_data = {
 };
 
 static struct pm8xxx_keypad_platform_data surf_keypad_data = {
+#if defined(CONFIG_MACH_ARTHUR)
 	.input_name		= "surf_keypad",
 	.input_phys_device	= "surf_keypad/input0",
+#endif
 	.num_rows		= 12,
 	.num_cols		= 8,
 	.rows_gpio_start	= PM8058_GPIO_PM_TO_SYS(8),
@@ -905,6 +910,7 @@ static struct camera_vreg_t msm_7x30_back_cam_vreg[] = {
 	{"lvsw1", REG_VS, 0, 0, 0},
 };
 
+#if 0
 static uint32_t camera_off_gpio_table[] = {
 	/* parallel CAMERA interfaces */
 	/* RST */
@@ -972,7 +978,7 @@ static uint32_t camera_on_gpio_table[] = {
 	/* MCLK */
 	GPIO_CFG(15, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 };
-
+#endif
 static struct gpio msm7x30_back_cam_gpio[] = {
 	{0, GPIOF_DIR_OUT, "CAM_RESET"},
 };
@@ -1066,6 +1072,24 @@ static struct i2c_board_info msm_camera_boardinfo[] __initdata = {
 	{
 		I2C_BOARD_INFO("mt9e013", 0x6C >> 2),
 	},
+#endif
+#if defined(CONFIG_MACH_ARTHUR)
+#ifdef CONFIG_OV5640
+    /*
+     *
+     * Refer to drivers/media/video/msm/ov5640.c
+     * For OV5640: 5.0Mp, 1/11-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+     *
+     * Attention: I2C device is initialized in sensor's driver if "CONFIG_SENSOR_ADAPTER"
+     *            is defined
+     */
+#if !defined(CONFIG_SENSOR_ADAPTER)
+    {
+        I2C_BOARD_INFO("ov5640", 0x78 >> 1),
+    },
+#else
+    //Do nothing
+#endif
 #endif
 #ifdef CONFIG_SN12M0PZ
 	{
@@ -1226,6 +1250,338 @@ static void config_camera_off_gpios(void)
 			PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_FLASH_BOOST_ENABLE), 0);
 	}
 }
+/*  ### ov5640 camera -- Dm47021 ### */
+#if defined(CONFIG_MACH_ARTHUR)
+/* add power setting ZTE_LJ_CAM_201009016 begin*/ 
+/*
+ * Commented by zh.shj, ZTE_MSM_CAMERA_ZHSHJ_001
+ *
+ * Camera power setting for backend sensor, i.e., MT9T111/MT9T112
+ * For MT9T111: 3.1Mp, 1/4-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+ * For MT9T112: 3.1Mp, 1/4-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+ *
+ * ZTE_LJ_CAM_20100916
+ * On msm7x30,we change iovdd from 2.8v to 1.8v
+ * Because the power of gpio high level state is 1.8v 
+ */
+ //add verg for motor alone, ZTE_CAM_YGL_20110510 ZTE_CAM_LJ_20110727
+#define MSM_CAMERA_POWER_BACKEND_DVDD_VAL       (1800)
+#define MSM_CAMERA_POWER_BACKEND_IOVDD_VAL      (1800)
+#define MSM_CAMERA_POWER_BACKEND_AVDD_VAL       (2800)
+#define MSM_CAMERA_POWER_BACKEND_MOTOR_VAL       (2800)
+int32_t msm_camera_power_backend(enum msm_camera_pwr_mode_t pwr_mode)
+{
+    struct vreg *vreg_cam_dvdd  = NULL;
+    struct vreg *vreg_cam_avdd  = NULL;
+    struct vreg *vreg_cam_iovdd = NULL;
+    struct vreg *vreg_cam_motor = NULL;
+    int32_t rc_cam_dvdd, rc_cam_avdd, rc_cam_iovdd,rc_cam_motor;
+
+    CDBG("%s: entry\n", __func__);
+
+    /*
+      * Power-up Sequence according to datasheet of sensor:
+      *
+      * VREG_CAM_DVDD1V8  = VREG_LVSW1
+      * VREG_CAM_IOVDD2V8 = VREG_GP7
+      * VREG_CAM_AVDD2V6  = VREG_GP2
+      * VREG_CAM_MOTOR    = VREG_CAM_AVDD2V6 = VREG_GP3
+      */
+    vreg_cam_dvdd  = vreg_get(0, "lvsw1");
+    vreg_cam_iovdd = vreg_get(0, "gp7");
+    vreg_cam_avdd  = vreg_get(0, "gp2");
+    vreg_cam_motor  = vreg_get(0, "gp10");
+    if ((!vreg_cam_dvdd) || (!vreg_cam_iovdd) || (!vreg_cam_avdd) || (!vreg_cam_motor))
+    {
+        pr_err("%s: vreg_get failed!\n", __func__);
+        return -EIO;
+    }
+
+    switch (pwr_mode)
+    {
+        case MSM_CAMERA_PWRUP_MODE:
+        {
+#if 0
+            rc_cam_dvdd = vreg_set_level(vreg_cam_dvdd, MSM_CAMERA_POWER_BACKEND_DVDD_VAL);
+            if (rc_cam_dvdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+#endif
+            rc_cam_dvdd = vreg_enable(vreg_cam_dvdd);
+            if (rc_cam_dvdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+            mdelay(1);
+
+            rc_cam_iovdd = vreg_set_level(vreg_cam_iovdd, MSM_CAMERA_POWER_BACKEND_IOVDD_VAL);
+            if (rc_cam_iovdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+
+            rc_cam_iovdd = vreg_enable(vreg_cam_iovdd);
+            if (rc_cam_iovdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+            mdelay(2);
+
+            rc_cam_avdd = vreg_set_level(vreg_cam_avdd, MSM_CAMERA_POWER_BACKEND_AVDD_VAL);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+
+            rc_cam_avdd = vreg_enable(vreg_cam_avdd);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+			rc_cam_motor = vreg_set_level(vreg_cam_motor, MSM_CAMERA_POWER_BACKEND_MOTOR_VAL);
+            if (rc_cam_motor)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+
+            rc_cam_motor = vreg_enable(vreg_cam_motor);
+            if (rc_cam_motor)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+            mdelay(10);
+
+            break;
+        }
+        case MSM_CAMERA_STANDBY_MODE:
+        {
+            rc_cam_avdd  = vreg_disable(vreg_cam_avdd);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_disable failed!\n", __func__);
+                return -EIO;
+            }
+
+            break;
+        }
+        case MSM_CAMERA_NORMAL_MODE:
+        {
+            rc_cam_avdd = vreg_set_level(vreg_cam_avdd, MSM_CAMERA_POWER_BACKEND_AVDD_VAL);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+
+            rc_cam_avdd = vreg_enable(vreg_cam_avdd);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+            mdelay(1);
+
+            break;
+        }
+        case MSM_CAMERA_PWRDWN_MODE:
+        {
+            /*
+               * Attention: DVDD, IOVDD, or AVDD may be used by other devices
+               */
+            rc_cam_dvdd  = vreg_disable(vreg_cam_dvdd);
+            rc_cam_avdd  = vreg_disable(vreg_cam_avdd);
+            if ((rc_cam_dvdd) || (rc_cam_avdd))
+            {
+                pr_err("%s: vreg_disable failed!\n", __func__);
+                return -EIO;
+            }
+
+			rc_cam_motor  = vreg_disable(vreg_cam_motor);
+            if (rc_cam_motor)
+            {
+                pr_err("%s: vreg_disable failed!\n", __func__);
+                return -EIO;
+            } 
+            break;
+        }
+        default:
+        {
+            pr_err("%s: parameter not supported!\n", __func__);
+            return -EIO;
+        }
+    }
+
+    return 0;
+}
+
+/*
+ *
+ * Camera power setting for frontend sensor, i.e., MT9V113
+ * For MT9V113: 0.3Mp, 1/11-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+ */
+#define MSM_CAMERA_POWER_FRONTEND_DVDD_VAL       (1800)
+#define MSM_CAMERA_POWER_FRONTEND_IOVDD_VAL      (1800)
+#define MSM_CAMERA_POWER_FRONTEND_AVDD_VAL       (2600)
+int32_t msm_camera_power_frontend(enum msm_camera_pwr_mode_t pwr_mode)
+{
+    struct vreg *vreg_cam_dvdd  = NULL;
+    struct vreg *vreg_cam_avdd  = NULL;
+    struct vreg *vreg_cam_iovdd = NULL;
+    int32_t rc_cam_dvdd, rc_cam_avdd, rc_cam_iovdd;
+
+    CDBG("%s: entry\n", __func__);
+
+    /*
+      * Power-up Sequence according to datasheet of sensor:
+      *
+      * VREG_CAM_DVDD1V8 = VREG_LVSW1
+      * VREG_CAM30_2V8   = VREG_GP7
+      * VREG_CAM_AVDD2V6 = VREG_GP2
+      */
+    vreg_cam_dvdd  = vreg_get(0, "lvsw1");
+    vreg_cam_iovdd = vreg_get(0, "gp7");
+    vreg_cam_avdd  = vreg_get(0, "gp2");
+    if ((!vreg_cam_dvdd) || (!vreg_cam_iovdd) || (!vreg_cam_avdd))
+    {
+        pr_err("%s: vreg_get failed!\n", __func__);
+        return -EIO;
+    }
+
+    switch (pwr_mode)
+    {
+        case MSM_CAMERA_PWRUP_MODE:
+        {
+#if 0
+            rc_cam_dvdd = vreg_set_level(vreg_cam_dvdd, MSM_CAMERA_POWER_FRONTEND_DVDD_VAL);
+            if (rc_cam_dvdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+#endif
+            rc_cam_dvdd = vreg_enable(vreg_cam_dvdd);
+            if (rc_cam_dvdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+            mdelay(1);
+
+            rc_cam_iovdd = vreg_set_level(vreg_cam_iovdd, MSM_CAMERA_POWER_FRONTEND_IOVDD_VAL);
+            if (rc_cam_iovdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+
+            rc_cam_iovdd = vreg_enable(vreg_cam_iovdd);
+            if (rc_cam_iovdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+            mdelay(2);
+
+            rc_cam_avdd = vreg_set_level(vreg_cam_avdd, MSM_CAMERA_POWER_FRONTEND_AVDD_VAL);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_set_level failed!\n", __func__);
+                return -EIO;
+            }
+
+            rc_cam_avdd = vreg_enable(vreg_cam_avdd);
+            if (rc_cam_avdd)
+            {
+                pr_err("%s: vreg_enable failed!\n", __func__);
+                return -EIO;
+            }
+
+            mdelay(500);
+
+            break;
+        }
+        case MSM_CAMERA_STANDBY_MODE:
+        {
+            pr_err("%s: MSM_CAMERA_STANDBY_MODE not supported!\n", __func__);
+            return -EIO;
+        }
+        case MSM_CAMERA_NORMAL_MODE:
+        {
+            pr_err("%s: MSM_CAMERA_NORMAL_MODE not supported!\n", __func__);
+            return -EIO;
+        }
+        case MSM_CAMERA_PWRDWN_MODE:
+        {
+            rc_cam_dvdd  = vreg_disable(vreg_cam_dvdd);
+            rc_cam_iovdd = vreg_disable(vreg_cam_iovdd);
+            rc_cam_avdd  = vreg_disable(vreg_cam_avdd);
+            if ((rc_cam_dvdd) || (rc_cam_iovdd) || (rc_cam_avdd))
+            {
+                pr_err("%s: vreg_disable failed!\n", __func__);
+                return -EIO;
+            }
+
+            break;
+        }
+        default:
+        {
+            pr_err("%s: parameter not supported!\n", __func__);
+            return -EIO;
+        }
+    }
+
+    return 0;
+}
+
+/*
+ *
+ * Camera clock switch for both frontend and backend sensors, i.e., MT9V113 and MT9P111
+ *
+ * For MT9V113: 0.3Mp, 1/11-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+ * For MT9P111: 5.0Mp, 1/4-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+ *
+ * switch_val: 0, to switch clock to frontend sensor, i.e., MT9V113, or
+ *             1, to switch clock to backend sensor, i.e., MT9P111
+ */
+int msm_camera_clk_switch(const struct msm_camera_sensor_info *data,
+                                  uint32_t gpio_switch,
+                                  uint32_t switch_val)
+{
+    int rc;
+
+    CDBG("%s: entry\n", __func__);
+
+    rc = gpio_request(gpio_switch, data->sensor_name);
+    if (0 == rc)
+    {
+        /* ignore "rc" */
+        rc = gpio_direction_output(gpio_switch, switch_val);
+
+        /* time delay */
+        mdelay(1);
+    }
+
+    gpio_free(gpio_switch);
+
+    return rc;
+}
+#endif 
+/* ### ov5640 mod ends here ### */
 
 struct resource msm_camera_resources[] = {
 	{
@@ -3552,8 +3908,15 @@ static int lcdc_gpio_array_num[] = {
 static struct msm_gpio lcdc_gpio_config_data[] = {
 	{ GPIO_CFG(45, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_clk" },
 	{ GPIO_CFG(46, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_cs0" },
+
 	{ GPIO_CFG(47, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_mosi" },
 	{ GPIO_CFG(48, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_miso" },
+
+#if defined(CONFIG_MACH_ARTHUR)
+	{ GPIO_CFG(120, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcd_ic_id" },
+#else
+  #error not board type defined here
+#endif
 };
 
 static void lcdc_config_gpios(int enable)
@@ -3568,28 +3931,28 @@ static void lcdc_config_gpios(int enable)
 						    lcdc_gpio_config_data));
 }
 #endif
-
-static struct msm_panel_common_pdata lcdc_sharp_panel_data = {
-#ifndef CONFIG_SPI_QSD
+/*   ########## ZTE WARP TOUCHSCREEN ###########   */
+static struct msm_panel_common_pdata lcdc_panel_data = {
 	.panel_config_gpio = lcdc_config_gpios,
 	.gpio_num          = lcdc_gpio_array_num,
-#endif
-	.gpio = 2, 	/* LPG PMIC_GPIO26 channel number */
 };
 
-static struct platform_device lcdc_sharp_panel_device = {
-	.name   = "lcdc_sharp_wvga",
+static struct platform_device lcdc_panel_device = {
+#if defined(CONFIG_MACH_ARTHUR)
+	.name   = "lcdc_panel_wvga",
+#endif
 	.id     = 0,
 	.dev    = {
-		.platform_data = &lcdc_sharp_panel_data,
+		.platform_data = &lcdc_panel_data,
 	}
 };
+
 
 static struct msm_gpio dtv_panel_irq_gpios[] = {
 	{ GPIO_CFG(18, 0, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA),
 		"hdmi_int" },
 };
-
+#if 0
 static struct msm_gpio dtv_panel_gpios[] = {
 	{ GPIO_CFG(120, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "wca_mclk" },
 	{ GPIO_CFG(121, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "wca_sd0" },
@@ -3630,7 +3993,7 @@ static struct msm_gpio dtv_panel_gpios[] = {
 static unsigned dtv_reset_gpio =
 	GPIO_CFG(37, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA);
 #endif
-
+#endif
 static struct regulator_bulk_data hdmi_core_regs[] = {
 	{ .supply = "ldo8",  .min_uV = 1800000, .max_uV = 1800000 },
 };
@@ -3889,7 +4252,7 @@ static bool hdmi_check_hdcp_hw_support(void)
 	else
 		return true;
 }
-
+#if 0
 static int dtv_panel_power(int on)
 {
 	int flag_on = !!on;
@@ -3950,7 +4313,7 @@ static int dtv_panel_power(int on)
 static struct lcdc_platform_data dtv_pdata = {
 	.lcdc_power_save   = dtv_panel_power,
 };
-
+#endif
 static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
        .inject_rx_on_wakeup = 1,
        .rx_to_inject = 0xFD,
@@ -4169,7 +4532,7 @@ static struct platform_device qcedev_device = {
 	},
 };
 #endif
-
+#if 0
 static int mddi_toshiba_pmic_bl(int level)
 {
 	int ret = -EPERM;
@@ -4225,7 +4588,8 @@ static struct regulator *mddi_ldo12;
 static struct regulator *mddi_ldo16;
 static struct regulator *mddi_ldo6;
 static struct regulator *mddi_lcd;
-
+#endif
+#if 0
 static int display_common_init(void)
 {
 	struct regulator_bulk_data regs[5] = {
@@ -4539,7 +4903,7 @@ static struct mddi_platform_data mddi_pdata = {
 	.mddi_sel_clk = msm_fb_mddi_sel_clk,
 	.mddi_client_power = msm_fb_mddi_client_power,
 };
-
+#endif
 static struct msm_panel_common_pdata mdp_pdata = {
 	.hw_revision_addr = 0xac001270,
 	.gpio = 30,
@@ -4548,13 +4912,14 @@ static struct msm_panel_common_pdata mdp_pdata = {
 	.mem_hid = MEMTYPE_EBI0,
 };
 
+#if 0
 static int lcd_panel_spi_gpio_num[] = {
 			45, /* spi_clk */
 			46, /* spi_cs  */
 			47, /* spi_mosi */
 			48, /* spi_miso */
 		};
-
+#endif
 static struct msm_gpio lcd_panel_gpios[] = {
 /* Workaround, since HDMI_INT is using the same GPIO line (18), and is used as
  * input.  if there is a hardware revision; we should reassign this GPIO to a
@@ -4569,11 +4934,13 @@ static struct msm_gpio lcd_panel_gpios[] = {
 	{ GPIO_CFG(23, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red0" },
 	{ GPIO_CFG(24, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red1" },
 	{ GPIO_CFG(25, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red2" },
+#if defined(CONFIG_MACH_ARTHUR)
 #ifndef CONFIG_SPI_QSD
 	{ GPIO_CFG(45, 0, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_clk" },
 	{ GPIO_CFG(46, 0, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_cs0" },
 	{ GPIO_CFG(47, 0, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_mosi" },
 	{ GPIO_CFG(48, 0, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_miso" },
+#endif
 #endif
 	{ GPIO_CFG(90, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_pclk" },
 	{ GPIO_CFG(91, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_en" },
@@ -4597,6 +4964,10 @@ static struct msm_gpio lcd_panel_gpios[] = {
 	{ GPIO_CFG(109, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red7" },
 };
 
+#if defined(CONFIG_MACH_ARTHUR)
+#ifdef CONFIG_ZTE_PLATFORM
+// not used
+#else
 static struct msm_gpio lcd_sharp_panel_gpios[] = {
 	{ GPIO_CFG(22, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu2" },
 	{ GPIO_CFG(25, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red2" },
@@ -4652,6 +5023,8 @@ static int lcdc_toshiba_panel_power(int on)
 
 	return rc;
 }
+#endif 
+#endif
 
 static int lcdc_sharp_panel_power(int on)
 {
@@ -4742,7 +5115,7 @@ reg_free:
 bail:
 	return rc;
 }
-
+#if 0
 static int atv_dac_power(int on)
 {
 	int rc = 0;
@@ -4781,19 +5154,19 @@ static struct tvenc_platform_data atv_pdata = {
 	.poll		 = 1,
 	.pm_vid_en	 = atv_dac_power,
 };
-
+#endif
 static void __init msm_fb_add_devices(void)
 {
 	msm_fb_register_device("mdp", &mdp_pdata);
-	msm_fb_register_device("pmdh", &mddi_pdata);
+	//msm_fb_register_device("pmdh", &mddi_pdata);
 	msm_fb_register_device("lcdc", &lcdc_pdata);
-	msm_fb_register_device("dtv", &dtv_pdata);
-	msm_fb_register_device("tvenc", &atv_pdata);
+	//msm_fb_register_device("dtv", &dtv_pdata);
+	//msm_fb_register_device("tvenc", &atv_pdata);
 #ifdef CONFIG_FB_MSM_TVOUT
-	msm_fb_register_device("tvout_device", NULL);
+	//msm_fb_register_device("tvout_device", NULL);
 #endif
 }
-
+/*
 static struct msm_panel_common_pdata lcdc_toshiba_panel_data = {
 	.gpio_num          = lcd_panel_spi_gpio_num,
 };
@@ -4805,7 +5178,7 @@ static struct platform_device lcdc_toshiba_panel_device = {
 		.platform_data = &lcdc_toshiba_panel_data,
 	}
 };
-
+ */
 #if defined(CONFIG_MARIMBA_CORE) && \
    (defined(CONFIG_MSM_BT_POWER) || defined(CONFIG_MSM_BT_POWER_MODULE))
 static struct platform_device msm_bt_power_device = {
@@ -5403,7 +5776,6 @@ static struct platform_device *devices[] __initdata = {
 #ifdef CONFIG_MSM_ROTATOR
 	&msm_rotator_device,
 #endif
-	&lcdc_sharp_panel_device,
 	&android_pmem_adsp_device,
 	&android_pmem_audio_device,
 	&msm_device_i2c,
@@ -5442,6 +5814,16 @@ static struct platform_device *devices[] __initdata = {
 #endif
 #ifdef CONFIG_MT9E013
 	&msm_camera_sensor_mt9e013,
+#endif
+#if defined(CONFIG_MACH_ARTHUR)
+#ifdef CONFIG_OV5640
+    /*
+     * Commented by zh.shj
+     *
+     * Refer to drivers/media/video/msm/ov5640.c
+     * For OV5640: 5.0Mp, 1/4-Inch System-On-A-Chip (SOC) CMOS Digital Image Sensor
+     */
+    &msm_camera_sensor_ov5640,
 #endif
 #ifdef CONFIG_VX6953
 	&msm_camera_sensor_vx6953,
@@ -5755,7 +6137,7 @@ static uint32_t msm_sdcc_setup_vreg(int dev_id, unsigned int enable)
 
 	if (test_bit(dev_id, &vreg_sts) == enable)
 		return rc;
-
+#if 0
 	if (dev_id == 4) {
 		if (enable) {
 			pr_debug("Enable Vdd dev_%d\n", dev_id);
@@ -5771,6 +6153,7 @@ static uint32_t msm_sdcc_setup_vreg(int dev_id, unsigned int enable)
 			clear_bit(dev_id, &vreg_sts);
 		}
 	}
+#endif
 
 	if (!enable || enabled_once[dev_id - 1])
 			return 0;
@@ -7358,6 +7741,8 @@ static void __init msm7x30_init_early(void)
 	msm7x30_allocate_memory_regions();
 }
 
+/* MAY NEED TO COME BACK TO THIS LATER -- DM47021 */
+
 static void __init msm7x30_fixup(struct tag *tags, char **cmdline,
 				 struct meminfo *mi)
 {
@@ -7451,4 +7836,18 @@ MACHINE_START(MSM8X55_SVLTE_FFA, "QCT MSM8X55 SVLTE FFA")
 	.init_early = msm7x30_init_early,
 	.handle_irq = vic_handle_irq,
 	.fixup = msm7x30_fixup,
+MACHINE_END
+
+MACHINE_START(ARTHUR, "arthur")
+	.boot_params = PLAT_PHYS_OFFSET + 0x100,
+#ifdef CONFIG_ZTE_PLATFORM
+		.fixup			= zte_fixup, 
+#endif
+	.map_io = msm7x30_map_io,
+	.reserve = msm7x30_reserve,
+	.init_irq = msm7x30_init_irq,
+	.init_machine = msm7x30_init,
+	.timer = &msm_timer,
+	.init_early = msm7x30_init_early,
+	.handle_irq = vic_handle_irq,
 MACHINE_END
