@@ -105,7 +105,7 @@ static int vcd_pmem_alloc(size_t sz, u8 **kernel_vaddr, u8 **phy_addr,
 		}
 		*kernel_vaddr = (u8 *) ion_map_kernel(
 				cctxt->vcd_ion_client,
-				//map_buffer->alloc_handle);
+				map_buffer->alloc_handle);
 		if (!(*kernel_vaddr)) {
 			pr_err("%s() ION map failed", __func__);
 			goto ion_free_bailout;
@@ -161,9 +161,9 @@ free_acm_alloc:
 		(unsigned long)map_buffer->phy_addr);
 	}
 	return -ENOMEM;
-//ion_map_bailout:
+ion_map_bailout:
 	ion_unmap_kernel(cctxt->vcd_ion_client, map_buffer->alloc_handle);
-//ion_free_bailout:
+ion_free_bailout:
 	ion_free(cctxt->vcd_ion_client, map_buffer->alloc_handle);
 free_map_table:
 	map_buffer->in_use = 0;
