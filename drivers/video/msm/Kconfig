@@ -243,6 +243,13 @@ config FB_MSM_LCDC_PRISM_WVGA
 	select FB_MSM_LCDC_PANEL
 	default n
 
+config FB_MSM_LCDC_WVGA_PANEL_ARTHUR
+	depends on FB_MSM_LCDC_HW
+	bool "LCDC HIMAX WVGA Panel ARTHUR"
+	select FB_MSM_LCDC_WVGA_ARTHUR
+	---help---
+	Support for LCDC ARTHUR WVGA (480x800) panel
+
 config FB_MSM_LCDC_SAMSUNG_WSVGA
 	bool
 	select FB_MSM_LCDC_PANEL
@@ -262,6 +269,11 @@ config FB_MSM_LCDC_TOSHIBA_WVGA_PT
 	bool
 	select FB_MSM_LCDC_PANEL
 	default n
+
+config  FB_MSM_LCDC_WVGA_ARTHUR
+	bool 
+	select FB_MSM_LCDC_PANEL	
+	default y
 
 config FB_MSM_LCDC_TOSHIBA_FWVGA_PT
 	bool

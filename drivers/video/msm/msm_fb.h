@@ -49,6 +49,40 @@
 #define MFD_KEY  0x11161126
 #define MSM_FB_MAX_DEV_LIST 32
 
+/***************************************************
+LCD_PANEL_ID   ZTE_LCD_LHT MODIFIED BY DM47021
+****************************************************/
+typedef enum {
+	LCD_PANEL_NOPANEL,
+	LCD_PANEL_P726_ILI9325C,
+	LCD_PANEL_P726_HX8347D,
+	LCD_PANEL_P726_S6D04M0X01,
+	LCD_PANEL_P722_HX8352A		=10,
+	LCD_PANEL_P727_HX8352A		=20,
+	LCD_PANEL_R750_ILI9481_1	=30,
+	LCD_PANEL_R750_ILI9481_2,
+	LCD_PANEL_R750_ILI9481_3,
+	LCD_PANEL_P729_TL2796		=40,
+	LCD_PANEL_P729_TFT_TRULY,
+	LCD_PANEL_P729_TFT_LEAD,
+	LCD_PANEL_V9_NT39416I		=50,
+	LCD_PANEL_4P3_NT35510		=60,
+	LCD_PANEL_4P3_HX8369A,
+    LCD_PANEL_4P3_RM68120_LEAD,
+	LCD_PANEL_4P3_HX8369A_TM,
+	LCD_PANEL_4P3_NT35510_2		,
+	LCD_PANEL_3P8_NT35510_1		=70,
+	LCD_PANEL_3P8_NT35510_2,
+	LCD_PANEL_3P8_HX8363A,
+	LCD_PANEL_3P5_ILI9481_1		=80,
+	LCD_PANEL_3P5_ILI9481_2,
+	LCD_PANEL_3P5_R61581,
+	LCD_PANEL_2P6_HX8368A_1		=90,
+	LCD_PANEL_2P6_HX8368A_2,
+	LCD_PANEL_V9PLUS_NT39411B	=100,
+	LCD_PANEL_MAX
+} LCD_PANEL_ID;
+
 struct disp_info_type_suspend {
 	boolean op_enable;
 	boolean sw_refreshing_enable;
@@ -239,12 +273,7 @@ void msm_fb_config_backlight(struct msm_fb_data_type *mfd);
 #endif
 
 void fill_black_screen(bool on, uint8 pipe_num, uint8 mixer_num);
-int msm_fb_check_frame_rate(struct msm_fb_data_type *mfd,
-				struct fb_info *info);
-
-#ifdef CONFIG_FB_MSM_LOGO
-#define INIT_IMAGE_FILE "/initlogo.rle"
-int load_565rle_image(char *filename, bool bf_supported);
-#endif
+//int msm_fb_check_frame_rate(struct msm_fb_data_type *mfd,
+				//struct fb_info *info)
 
 #endif /* MSM_FB_H */
