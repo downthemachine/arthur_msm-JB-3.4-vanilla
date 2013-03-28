@@ -181,6 +181,20 @@ struct pm8xxx_gpio_init_info {
 	struct pm_gpio			config;
 };
 
+#if defined(CONFIG_ZTE_PLATFORM)
+//static smem_global *global;
+
+static int g_zte_ftm_flag_fixup;
+//static int g_zte_board_id_type;
+int get_zte_board_id_type(void);
+extern void sync_sysfs_board_id(int flag);
+
+#if defined(CONFIG_F3_LOG)
+#define SDLOG_MEM_BASE    0x8D00000
+#endif
+
+#endif
+
 static int pm8058_gpios_init(void)
 {
 	int rc;
@@ -887,162 +901,13 @@ static struct i2c_board_info cy8info[] __initdata = {
 	},
 };
 
-#ifdef CONFIG_MSM_CAMERA_V4L2
-static struct msm_camera_device_platform_data msm_camera_csi_device_data[] = {
-	{
-		.csid_core = 0,
-		.is_vpe    = 1,
-		.ioclk = {
-			.vfe_clk_rate =	153600000,
-		},
-	},
-	{
-		.csid_core = 0,
-		.is_vpe    = 1,
-		.ioclk = {
-			.vfe_clk_rate =	153600000,
-		},
-	},
-};
-
-static struct camera_vreg_t msm_7x30_back_cam_vreg[] = {
-	{"gp2", REG_LDO, 2600000, 2600000, -1},
-	{"lvsw1", REG_VS, 0, 0, 0},
-};
-
-#if 0
-static uint32_t camera_off_gpio_table[] = {
-	/* parallel CAMERA interfaces */
-	/* RST */
-	GPIO_CFG(0,  0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT2 */
-	GPIO_CFG(2,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT3 */
-	GPIO_CFG(3,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT4 */
-	GPIO_CFG(4,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT5 */
-	GPIO_CFG(5,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT6 */
-	GPIO_CFG(6,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT7 */
-	GPIO_CFG(7,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT8 */
-	GPIO_CFG(8,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT9 */
-	GPIO_CFG(9,  0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT10 */
-	GPIO_CFG(10, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT11 */
-	GPIO_CFG(11, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* PCLK */
-	GPIO_CFG(12, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* HSYNC_IN */
-	GPIO_CFG(13, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* VSYNC_IN */
-	GPIO_CFG(14, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* MCLK */
-	GPIO_CFG(15, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-};
-
-static uint32_t camera_on_gpio_table[] = {
-	/* parallel CAMERA interfaces */
-	/* RST */
-	GPIO_CFG(0,  0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT2 */
-	GPIO_CFG(2,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT3 */
-	GPIO_CFG(3,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT4 */
-	GPIO_CFG(4,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT5 */
-	GPIO_CFG(5,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT6 */
-	GPIO_CFG(6,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT7 */
-	GPIO_CFG(7,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT8 */
-	GPIO_CFG(8,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT9 */
-	GPIO_CFG(9,  1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT10 */
-	GPIO_CFG(10, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* DAT11 */
-	GPIO_CFG(11, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* PCLK */
-	GPIO_CFG(12, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* HSYNC_IN */
-	GPIO_CFG(13, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* VSYNC_IN */
-	GPIO_CFG(14, 1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
-	/* MCLK */
-	GPIO_CFG(15, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-};
-#endif
-static struct gpio msm7x30_back_cam_gpio[] = {
-	{0, GPIOF_DIR_OUT, "CAM_RESET"},
-};
-
-static struct msm_gpio_set_tbl msm7x30_back_cam_gpio_set_tbl[] = {
-	{0, GPIOF_OUT_INIT_LOW, 1000},
-	{0, GPIOF_OUT_INIT_HIGH, 4000},
-};
-
-static struct msm_camera_gpio_conf msm_7x30_back_cam_gpio_conf = {
-	.cam_gpio_req_tbl = msm7x30_back_cam_gpio,
-	.cam_gpio_req_tbl_size = ARRAY_SIZE(msm7x30_back_cam_gpio),
-	.cam_gpio_set_tbl = msm7x30_back_cam_gpio_set_tbl,
-	.cam_gpio_set_tbl_size = ARRAY_SIZE(msm7x30_back_cam_gpio_set_tbl),
-	.camera_off_table = camera_off_gpio_table,
-	.camera_off_table_size = ARRAY_SIZE(camera_off_gpio_table),
-	.camera_on_table = camera_on_gpio_table,
-	.camera_on_table_size = ARRAY_SIZE(camera_on_gpio_table),
-	.gpio_no_mux = 1,
-};
-
-static struct msm_camera_sensor_flash_data flash_vx6953 = {
-	.flash_type	= MSM_CAMERA_FLASH_NONE,
-};
-
-static struct msm_camera_sensor_platform_info sensor_board_info_vx6953 = {
-	.mount_angle	= 0,
-	.cam_vreg = msm_7x30_back_cam_vreg,
-	.num_vreg = ARRAY_SIZE(msm_7x30_back_cam_vreg),
-	.gpio_conf = &msm_7x30_back_cam_gpio_conf,
-};
-
-static struct msm_camera_sensor_info msm_camera_sensor_vx6953_data = {
-	.sensor_name	= "vx6953",
-	.pdata	= &msm_camera_csi_device_data[0],
-	.flash_data	= &flash_vx6953,
-	.sensor_platform_info = &sensor_board_info_vx6953,
-	.csi_if	= 1,
-	.camera_type = BACK_CAMERA_2D,
-};
-
-static struct platform_device msm_camera_server = {
-	.name = "msm_cam_server",
-	.id = 0,
-};
-
-void __init msm7x30_init_cam(void)
-{
-	platform_device_register(&msm_camera_server);
-	platform_device_register(&msm_device_csic0);
-	platform_device_register(&msm_device_vfe);
-	platform_device_register(&msm_device_vpe);
-}
-
-#ifdef CONFIG_I2C
-static struct i2c_board_info msm_camera_boardinfo[] = {
-	{
-	I2C_BOARD_INFO("vx6953", 0x20),
-	.platform_data = &msm_camera_sensor_vx6953_data,
-	},
-};
-#endif
-#else
 static struct i2c_board_info msm_camera_boardinfo[] __initdata = {
+
+#ifdef CONFIG_SENSORS_AKM8962
+	{
+		I2C_BOARD_INFO("akm8962", 0x0c),
+	},
+#endif
 #ifdef CONFIG_MT9D112
 	{
 		I2C_BOARD_INFO("mt9d112", 0x78 >> 1),
@@ -3475,6 +3340,10 @@ static struct i2c_board_info bma150_board_info[] __initdata = {
 
 static struct i2c_board_info msm_i2c_board_info[] = {
 	{
+		.type = "taos", 
+		.addr = 0x39,
+	}, 
+	{
 		I2C_BOARD_INFO("m33c01", OPTNAV_I2C_SLAVE_ADDR),
 		.irq		= MSM_GPIO_TO_INT(OPTNAV_IRQ),
 		.platform_data = &optnav_data,
@@ -3897,7 +3766,7 @@ static struct platform_device android_pmem_device = {
 	.dev = { .platform_data = &android_pmem_pdata },
 };
 
-#ifndef CONFIG_SPI_QSD
+//#ifndef CONFIG_SPI_QSD 
 static int lcdc_gpio_array_num[] = {
 				45, /* spi_clk */
 				46, /* spi_cs  */
@@ -3930,7 +3799,6 @@ static void lcdc_config_gpios(int enable)
 					    ARRAY_SIZE(
 						    lcdc_gpio_config_data));
 }
-#endif
 /*   ########## ZTE WARP TOUCHSCREEN ###########   */
 static struct msm_panel_common_pdata lcdc_panel_data = {
 	.panel_config_gpio = lcdc_config_gpios,
@@ -3938,62 +3806,19 @@ static struct msm_panel_common_pdata lcdc_panel_data = {
 };
 
 static struct platform_device lcdc_panel_device = {
-#if defined(CONFIG_MACH_ARTHUR)
+
 	.name   = "lcdc_panel_wvga",
-#endif
 	.id     = 0,
 	.dev    = {
 		.platform_data = &lcdc_panel_data,
 	}
 };
 
-
 static struct msm_gpio dtv_panel_irq_gpios[] = {
 	{ GPIO_CFG(18, 0, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA),
 		"hdmi_int" },
 };
-#if 0
-static struct msm_gpio dtv_panel_gpios[] = {
-	{ GPIO_CFG(120, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "wca_mclk" },
-	{ GPIO_CFG(121, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "wca_sd0" },
-	{ GPIO_CFG(122, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "wca_sd1" },
-	{ GPIO_CFG(123, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "wca_sd2" },
-	{ GPIO_CFG(124, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_8MA), "dtv_pclk" },
-	{ GPIO_CFG(125, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_en" },
-	{ GPIO_CFG(126, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_vsync" },
-	{ GPIO_CFG(127, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_hsync" },
-	{ GPIO_CFG(128, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data0" },
-	{ GPIO_CFG(129, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data1" },
-	{ GPIO_CFG(130, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data2" },
-	{ GPIO_CFG(131, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data3" },
-	{ GPIO_CFG(132, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data4" },
-	{ GPIO_CFG(160, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data5" },
-	{ GPIO_CFG(161, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data6" },
-	{ GPIO_CFG(162, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data7" },
-	{ GPIO_CFG(163, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data8" },
-	{ GPIO_CFG(164, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_data9" },
-	{ GPIO_CFG(165, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat10" },
-	{ GPIO_CFG(166, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat11" },
-	{ GPIO_CFG(167, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat12" },
-	{ GPIO_CFG(168, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat13" },
-	{ GPIO_CFG(169, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat14" },
-	{ GPIO_CFG(170, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat15" },
-	{ GPIO_CFG(171, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat16" },
-	{ GPIO_CFG(172, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat17" },
-	{ GPIO_CFG(173, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat18" },
-	{ GPIO_CFG(174, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat19" },
-	{ GPIO_CFG(175, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat20" },
-	{ GPIO_CFG(176, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat21" },
-	{ GPIO_CFG(177, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat22" },
-	{ GPIO_CFG(178, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "dtv_dat23" },
-};
 
-
-#ifdef HDMI_RESET
-static unsigned dtv_reset_gpio =
-	GPIO_CFG(37, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA);
-#endif
-#endif
 static struct regulator_bulk_data hdmi_core_regs[] = {
 	{ .supply = "ldo8",  .min_uV = 1800000, .max_uV = 1800000 },
 };
@@ -4407,503 +4232,16 @@ static struct platform_device android_pmem_audio_device = {
        .dev = { .platform_data = &android_pmem_audio_pdata },
 };
 
-#if defined(CONFIG_CRYPTO_DEV_QCRYPTO) || \
-		defined(CONFIG_CRYPTO_DEV_QCRYPTO_MODULE) || \
-		defined(CONFIG_CRYPTO_DEV_QCEDEV) || \
-		defined(CONFIG_CRYPTO_DEV_QCEDEV_MODULE)
 
-#define QCE_SIZE		0x10000
-#define QCE_0_BASE		0xA8400000
-
-#define QCE_HW_KEY_SUPPORT	1
-#define QCE_SHA_HMAC_SUPPORT	0
-#define QCE_SHARE_CE_RESOURCE	0
-#define QCE_CE_SHARED		0
-
-static struct resource qcrypto_resources[] = {
-	[0] = {
-		.start = QCE_0_BASE,
-		.end = QCE_0_BASE + QCE_SIZE - 1,
-		.flags = IORESOURCE_MEM,
-	},
-	[1] = {
-		.name = "crypto_channels",
-		.start = DMOV_CE_IN_CHAN,
-		.end = DMOV_CE_OUT_CHAN,
-		.flags = IORESOURCE_DMA,
-	},
-	[2] = {
-		.name = "crypto_crci_in",
-		.start = DMOV_CE_IN_CRCI,
-		.end = DMOV_CE_IN_CRCI,
-		.flags = IORESOURCE_DMA,
-	},
-	[3] = {
-		.name = "crypto_crci_out",
-		.start = DMOV_CE_OUT_CRCI,
-		.end = DMOV_CE_OUT_CRCI,
-		.flags = IORESOURCE_DMA,
-	},
-	[4] = {
-		.name = "crypto_crci_hash",
-		.start = DMOV_CE_HASH_CRCI,
-		.end = DMOV_CE_HASH_CRCI,
-		.flags = IORESOURCE_DMA,
-	},
+/**start******20120511***************
+ **modify*******solve blue screen***************/
+int mdp_core_clk_rate_table[] = {
+	192000000, 		//122880000
+	192000000,		//122880000
+	192000000,
+	192000000,
 };
 
-static struct resource qcedev_resources[] = {
-	[0] = {
-		.start = QCE_0_BASE,
-		.end = QCE_0_BASE + QCE_SIZE - 1,
-		.flags = IORESOURCE_MEM,
-	},
-	[1] = {
-		.name = "crypto_channels",
-		.start = DMOV_CE_IN_CHAN,
-		.end = DMOV_CE_OUT_CHAN,
-		.flags = IORESOURCE_DMA,
-	},
-	[2] = {
-		.name = "crypto_crci_in",
-		.start = DMOV_CE_IN_CRCI,
-		.end = DMOV_CE_IN_CRCI,
-		.flags = IORESOURCE_DMA,
-	},
-	[3] = {
-		.name = "crypto_crci_out",
-		.start = DMOV_CE_OUT_CRCI,
-		.end = DMOV_CE_OUT_CRCI,
-		.flags = IORESOURCE_DMA,
-	},
-	[4] = {
-		.name = "crypto_crci_hash",
-		.start = DMOV_CE_HASH_CRCI,
-		.end = DMOV_CE_HASH_CRCI,
-		.flags = IORESOURCE_DMA,
-	},
-};
-
-#endif
-
-#if defined(CONFIG_CRYPTO_DEV_QCRYPTO) || \
-		defined(CONFIG_CRYPTO_DEV_QCRYPTO_MODULE)
-
-static struct msm_ce_hw_support qcrypto_ce_hw_suppport = {
-	.ce_shared = QCE_CE_SHARED,
-	.shared_ce_resource = QCE_SHARE_CE_RESOURCE,
-	.hw_key_support = QCE_HW_KEY_SUPPORT,
-	.sha_hmac = QCE_SHA_HMAC_SUPPORT,
-	/* Bus Scaling declaration*/
-	.bus_scale_table = NULL,
-};
-
-static struct platform_device qcrypto_device = {
-	.name		= "qcrypto",
-	.id		= 0,
-	.num_resources	= ARRAY_SIZE(qcrypto_resources),
-	.resource	= qcrypto_resources,
-	.dev		= {
-		.coherent_dma_mask = DMA_BIT_MASK(32),
-		.platform_data = &qcrypto_ce_hw_suppport,
-	},
-};
-#endif
-
-#if defined(CONFIG_CRYPTO_DEV_QCEDEV) || \
-		defined(CONFIG_CRYPTO_DEV_QCEDEV_MODULE)
-
-static struct msm_ce_hw_support qcedev_ce_hw_suppport = {
-	.ce_shared = QCE_CE_SHARED,
-	.shared_ce_resource = QCE_SHARE_CE_RESOURCE,
-	.hw_key_support = QCE_HW_KEY_SUPPORT,
-	.sha_hmac = QCE_SHA_HMAC_SUPPORT,
-	/* Bus Scaling declaration*/
-	.bus_scale_table = NULL,
-};
-static struct platform_device qcedev_device = {
-	.name		= "qce",
-	.id		= 0,
-	.num_resources	= ARRAY_SIZE(qcedev_resources),
-	.resource	= qcedev_resources,
-	.dev		= {
-		.coherent_dma_mask = DMA_BIT_MASK(32),
-		.platform_data = &qcedev_ce_hw_suppport,
-	},
-};
-#endif
-#if 0
-static int mddi_toshiba_pmic_bl(int level)
-{
-	int ret = -EPERM;
-
-	ret = pmic_set_led_intensity(LED_LCD, level);
-
-	if (ret)
-		printk(KERN_WARNING "%s: can't set lcd backlight!\n",
-					__func__);
-	return ret;
-}
-
-static struct msm_panel_common_pdata mddi_toshiba_pdata = {
-	.pmic_backlight = mddi_toshiba_pmic_bl,
-};
-
-static struct platform_device mddi_toshiba_device = {
-	.name   = "mddi_toshiba",
-	.id     = 0,
-	.dev    = {
-		.platform_data = &mddi_toshiba_pdata,
-	}
-};
-
-static unsigned wega_reset_gpio =
-	GPIO_CFG(180, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA);
-
-static struct msm_gpio fluid_vee_reset_gpio[] = {
-	{ GPIO_CFG(20, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "vee_reset" },
-};
-
-static unsigned char quickvx_mddi_client = 1, other_mddi_client = 1;
-static unsigned char quickvx_ldo_enabled;
-
-static unsigned quickvx_vlp_gpio =
-	GPIO_CFG(97, 0, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL,	GPIO_CFG_2MA);
-
-static struct pm8xxx_gpio_init_info pmic_quickvx_clk_gpio = {
-	PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_QUICKVX_CLK),
-	{
-		.direction      = PM_GPIO_DIR_OUT,
-		.output_buffer  = PM_GPIO_OUT_BUF_CMOS,
-		.output_value   = 1,
-		.pull           = PM_GPIO_PULL_NO,
-		.vin_sel        = PM8058_GPIO_VIN_S3,
-		.out_strength   = PM_GPIO_STRENGTH_HIGH,
-		.function       = PM_GPIO_FUNC_2,
-	},
-};
-
-static struct regulator *mddi_ldo20;
-static struct regulator *mddi_ldo12;
-static struct regulator *mddi_ldo16;
-static struct regulator *mddi_ldo6;
-static struct regulator *mddi_lcd;
-#endif
-#if 0
-static int display_common_init(void)
-{
-	struct regulator_bulk_data regs[5] = {
-		{ .supply = "ldo20", /* voltage set in display_common_power */},
-		{ .supply = "ldo12", .min_uV = 1800000, .max_uV = 1800000 },
-		{ .supply = "ldo6",  .min_uV = 3075000, .max_uV = 3400000 },
-		{ .supply = "ldo16", .min_uV = 2600000, .max_uV = 2600000 },
-		{ .supply = NULL,    /* mddi_lcd, initialized below */ },
-	};
-
-	int rc = 0;
-
-	if (machine_is_msm7x30_fluid()) {
-		/* lcd: LDO8 @1.8V */
-		regs[4].supply = "ldo8";
-		regs[4].min_uV = 1800000;
-		regs[4].max_uV = 1800000;
-	} else {
-		/* lcd: LDO15 @3.1V */
-		regs[4].supply = "ldo15";
-		regs[4].min_uV = 3100000;
-		regs[4].max_uV = 3100000;
-	}
-
-	rc = regulator_bulk_get(NULL, ARRAY_SIZE(regs), regs);
-	if (rc) {
-		pr_err("%s: regulator_bulk_get failed: %d\n",
-				__func__, rc);
-		goto bail;
-	}
-
-	rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs), regs);
-	if (rc) {
-		pr_err("%s: regulator_bulk_set_voltage failed: %d\n",
-				__func__, rc);
-		goto put_regs;
-	}
-
-	mddi_ldo20 = regs[0].consumer;
-	mddi_ldo12 = regs[1].consumer;
-	mddi_ldo6  = regs[2].consumer;
-	mddi_ldo16 = regs[3].consumer;
-	mddi_lcd   = regs[4].consumer;
-
-	return rc;
-
-put_regs:
-	regulator_bulk_free(ARRAY_SIZE(regs), regs);
-bail:
-	return rc;
-}
-
-static int display_common_power(int on)
-{
-	int rc = 0, flag_on = !!on;
-	static int display_common_power_save_on;
-	static bool display_regs_initialized;
-
-	if (display_common_power_save_on == flag_on)
-		return 0;
-
-	display_common_power_save_on = flag_on;
-
-	if (unlikely(!display_regs_initialized)) {
-		rc = display_common_init();
-		if (rc) {
-			pr_err("%s: regulator init failed: %d\n",
-					__func__, rc);
-			return rc;
-		}
-		display_regs_initialized = true;
-	}
-
-
-	if (on) {
-		/* reset Toshiba WeGA chip -- toggle reset pin -- gpio_180 */
-		rc = gpio_tlmm_config(wega_reset_gpio, GPIO_CFG_ENABLE);
-		if (rc) {
-			pr_err("%s: gpio_tlmm_config(%#x)=%d\n",
-				       __func__, wega_reset_gpio, rc);
-			return rc;
-		}
-
-		/* bring reset line low to hold reset*/
-		gpio_set_value(180, 0);
-
-		if (quickvx_mddi_client) {
-			/* QuickVX chip -- VLP pin -- gpio 97 */
-			rc = gpio_tlmm_config(quickvx_vlp_gpio,
-				GPIO_CFG_ENABLE);
-			if (rc) {
-				pr_err("%s: gpio_tlmm_config(%#x)=%d\n",
-					__func__, quickvx_vlp_gpio, rc);
-				return rc;
-			}
-
-			/* bring QuickVX VLP line low */
-			gpio_set_value(97, 0);
-
-			rc = pm8xxx_gpio_config(pmic_quickvx_clk_gpio.gpio,
-						&pmic_quickvx_clk_gpio.config);
-			if (rc) {
-				pr_err("%s: pm8xxx_gpio_config(%#x)=%d\n",
-					__func__, pmic_quickvx_clk_gpio.gpio,
-					rc);
-				return rc;
-			}
-
-			gpio_set_value_cansleep(PM8058_GPIO_PM_TO_SYS(
-				PMIC_GPIO_QUICKVX_CLK), 0);
-		}
-	}
-
-	if (quickvx_mddi_client)
-		rc = regulator_set_voltage(mddi_ldo20, 1500000, 1800000);
-	else
-		rc = regulator_set_voltage(mddi_ldo20, 1500000, 1500000);
-
-	if (rc) {
-		pr_err("%s: could not set voltage for ldo20: %d\n",
-				__func__, rc);
-		return rc;
-	}
-
-	if (on) {
-		rc = regulator_enable(mddi_ldo20);
-		if (rc) {
-			pr_err("%s: LDO20 regulator enable failed (%d)\n",
-			       __func__, rc);
-			return rc;
-		}
-
-		rc = regulator_enable(mddi_ldo12);
-		if (rc) {
-			pr_err("%s: LDO12 regulator enable failed (%d)\n",
-			       __func__, rc);
-			return rc;
-		}
-
-		if (other_mddi_client) {
-			rc = regulator_enable(mddi_ldo16);
-			if (rc) {
-				pr_err("%s: LDO16 regulator enable failed (%d)\n",
-					   __func__, rc);
-				return rc;
-			}
-		}
-
-		if (quickvx_ldo_enabled) {
-			/* Disable LDO6 during display ON */
-			rc = regulator_disable(mddi_ldo6);
-			if (rc) {
-				pr_err("%s: LDO6 regulator disable failed (%d)\n",
-					   __func__, rc);
-				return rc;
-			}
-			quickvx_ldo_enabled = 0;
-		}
-
-		rc = regulator_enable(mddi_lcd);
-		if (rc) {
-			pr_err("%s: LCD regulator enable failed (%d)\n",
-				__func__, rc);
-			return rc;
-		}
-
-		mdelay(5);		/* ensure power is stable */
-
-		if (machine_is_msm7x30_fluid()) {
-			rc = msm_gpios_request_enable(fluid_vee_reset_gpio,
-					ARRAY_SIZE(fluid_vee_reset_gpio));
-			if (rc)
-				pr_err("%s gpio_request_enable failed rc=%d\n",
-							__func__, rc);
-			else {
-				/* assert vee reset_n */
-				gpio_set_value(20, 1);
-				gpio_set_value(20, 0);
-				mdelay(1);
-				gpio_set_value(20, 1);
-			}
-		}
-
-		gpio_set_value(180, 1); /* bring reset line high */
-		mdelay(10);	/* 10 msec before IO can be accessed */
-
-		if (quickvx_mddi_client) {
-			gpio_set_value(97, 1);
-			msleep(2);
-			gpio_set_value_cansleep(PM8058_GPIO_PM_TO_SYS(
-				PMIC_GPIO_QUICKVX_CLK), 1);
-			msleep(2);
-		}
-
-		rc = pmapp_display_clock_config(1);
-		if (rc) {
-			pr_err("%s pmapp_display_clock_config rc=%d\n",
-					__func__, rc);
-			return rc;
-		}
-
-	} else {
-		rc = regulator_disable(mddi_ldo20);
-		if (rc) {
-			pr_err("%s: LDO20 regulator disable failed (%d)\n",
-			       __func__, rc);
-			return rc;
-		}
-
-
-		if (other_mddi_client) {
-			rc = regulator_disable(mddi_ldo16);
-			if (rc) {
-				pr_err("%s: LDO16 regulator disable failed (%d)\n",
-					   __func__, rc);
-				return rc;
-			}
-		}
-
-		if (quickvx_mddi_client && !quickvx_ldo_enabled) {
-			/* Enable LDO6 during display OFF for
-			   Quicklogic chip to sleep with data retention */
-			rc = regulator_enable(mddi_ldo6);
-			if (rc) {
-				pr_err("%s: LDO6 regulator enable failed (%d)\n",
-					   __func__, rc);
-				return rc;
-			}
-			quickvx_ldo_enabled = 1;
-		}
-
-		gpio_set_value(180, 0); /* bring reset line low */
-
-		if (quickvx_mddi_client) {
-			gpio_set_value(97, 0);
-			gpio_set_value_cansleep(PM8058_GPIO_PM_TO_SYS(
-				PMIC_GPIO_QUICKVX_CLK), 0);
-		}
-
-		rc = regulator_disable(mddi_lcd);
-		if (rc) {
-			pr_err("%s: LCD regulator disable failed (%d)\n",
-				__func__, rc);
-			return rc;
-		}
-
-		mdelay(5);	/* ensure power is stable */
-
-		rc = regulator_disable(mddi_ldo12);
-		if (rc) {
-			pr_err("%s: LDO12 regulator disable failed (%d)\n",
-			       __func__, rc);
-			return rc;
-		}
-
-		if (machine_is_msm7x30_fluid()) {
-			msm_gpios_disable_free(fluid_vee_reset_gpio,
-					ARRAY_SIZE(fluid_vee_reset_gpio));
-		}
-
-		rc = pmapp_display_clock_config(0);
-		if (rc) {
-			pr_err("%s pmapp_display_clock_config rc=%d\n",
-					__func__, rc);
-			return rc;
-		}
-	}
-
-	return rc;
-}
-
-static int msm_fb_mddi_sel_clk(u32 *clk_rate)
-{
-	*clk_rate *= 2;
-	return 0;
-}
-
-static int msm_fb_mddi_client_power(u32 client_id)
-{
-	int rc;
-	printk(KERN_NOTICE "\n client_id = 0x%x", client_id);
-	/* Check if it is Quicklogic client */
-	if (client_id == 0xc5835800) {
-		printk(KERN_NOTICE "\n Quicklogic MDDI client");
-		other_mddi_client = 0;
-		if (IS_ERR(mddi_ldo16)) {
-			rc = PTR_ERR(mddi_ldo16);
-			pr_err("%s: gp10 vreg get failed (%d)\n", __func__, rc);
-			return rc;
-		}
-		rc = regulator_disable(mddi_ldo16);
-		if (rc) {
-			pr_err("%s: LDO16 vreg enable failed (%d)\n",
-							__func__, rc);
-			return rc;
-		}
-
-	} else {
-		printk(KERN_NOTICE "\n Non-Quicklogic MDDI client");
-		quickvx_mddi_client = 0;
-		gpio_set_value(97, 0);
-		gpio_set_value_cansleep(PM8058_GPIO_PM_TO_SYS(
-			PMIC_GPIO_QUICKVX_CLK), 0);
-	}
-
-	return 0;
-}
-
-static struct mddi_platform_data mddi_pdata = {
-	.mddi_power_save = display_common_power,
-	.mddi_sel_clk = msm_fb_mddi_sel_clk,
-	.mddi_client_power = msm_fb_mddi_client_power,
-};
-#endif
 static struct msm_panel_common_pdata mdp_pdata = {
 	.hw_revision_addr = 0xac001270,
 	.gpio = 30,
@@ -4912,14 +4250,6 @@ static struct msm_panel_common_pdata mdp_pdata = {
 	.mem_hid = MEMTYPE_EBI0,
 };
 
-#if 0
-static int lcd_panel_spi_gpio_num[] = {
-			45, /* spi_clk */
-			46, /* spi_cs  */
-			47, /* spi_mosi */
-			48, /* spi_miso */
-		};
-#endif
 static struct msm_gpio lcd_panel_gpios[] = {
 /* Workaround, since HDMI_INT is using the same GPIO line (18), and is used as
  * input.  if there is a hardware revision; we should reassign this GPIO to a
@@ -4927,13 +4257,14 @@ static struct msm_gpio lcd_panel_gpios[] = {
  * the future.
 	{ GPIO_CFG(18, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn0" },
  */
-	{ GPIO_CFG(19, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn1" },
-	{ GPIO_CFG(20, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu0" },
-	{ GPIO_CFG(21, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu1" },
-	{ GPIO_CFG(22, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu2" },
-	{ GPIO_CFG(23, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red0" },
-	{ GPIO_CFG(24, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red1" },
-	{ GPIO_CFG(25, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red2" },
+
+	{ GPIO_CFG(19, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn1" },
+	{ GPIO_CFG(20, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu0" },
+	{ GPIO_CFG(21, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu1" },
+	{ GPIO_CFG(22, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu2" },
+	{ GPIO_CFG(23, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red0" },
+	{ GPIO_CFG(24, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red1" },
+	{ GPIO_CFG(25, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red2" },
 #if defined(CONFIG_MACH_ARTHUR)
 #ifndef CONFIG_SPI_QSD
 	{ GPIO_CFG(45, 0, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_clk" },
@@ -4941,142 +4272,78 @@ static struct msm_gpio lcd_panel_gpios[] = {
 	{ GPIO_CFG(47, 0, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_mosi" },
 	{ GPIO_CFG(48, 0, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "spi_miso" },
 #endif
-#endif
-	{ GPIO_CFG(90, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_pclk" },
-	{ GPIO_CFG(91, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_en" },
-	{ GPIO_CFG(92, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_vsync" },
-	{ GPIO_CFG(93, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_hsync" },
-	{ GPIO_CFG(94, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn2" },
-	{ GPIO_CFG(95, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn3" },
-	{ GPIO_CFG(96, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn4" },
-	{ GPIO_CFG(97, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn5" },
-	{ GPIO_CFG(98, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn6" },
-	{ GPIO_CFG(99, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn7" },
-	{ GPIO_CFG(100, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu3" },
-	{ GPIO_CFG(101, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu4" },
-	{ GPIO_CFG(102, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu5" },
-	{ GPIO_CFG(103, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu6" },
-	{ GPIO_CFG(104, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu7" },
-	{ GPIO_CFG(105, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red3" },
-	{ GPIO_CFG(106, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red4" },
-	{ GPIO_CFG(107, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red5" },
-	{ GPIO_CFG(108, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red6" },
-	{ GPIO_CFG(109, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red7" },
+#endif 
+
+	{ GPIO_CFG(90, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_6MA), "lcdc_pclk" },
+	{ GPIO_CFG(91, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_6MA), "lcdc_en" },
+	{ GPIO_CFG(92, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_6MA), "lcdc_vsync" },
+	{ GPIO_CFG(93, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_6MA), "lcdc_hsync" },
+	{ GPIO_CFG(94, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn2" },
+	{ GPIO_CFG(95, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn3" },
+	{ GPIO_CFG(96, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn4" },
+	{ GPIO_CFG(97, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn5" },
+	{ GPIO_CFG(98, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn6" },
+	{ GPIO_CFG(99, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_grn7" },
+	{ GPIO_CFG(100, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu3" },
+	{ GPIO_CFG(101, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu4" },
+	{ GPIO_CFG(102, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu5" },
+	{ GPIO_CFG(103, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu6" },
+	{ GPIO_CFG(104, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_blu7" },
+	{ GPIO_CFG(105, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red3" },
+	{ GPIO_CFG(106, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red4" },
+	{ GPIO_CFG(107, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red5" },
+	{ GPIO_CFG(108, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red6" },
+	{ GPIO_CFG(109, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_4MA), "lcdc_red7" },
 };
 
-#if defined(CONFIG_MACH_ARTHUR)
-#ifdef CONFIG_ZTE_PLATFORM
-// not used
-#else
-static struct msm_gpio lcd_sharp_panel_gpios[] = {
-	{ GPIO_CFG(22, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu2" },
-	{ GPIO_CFG(25, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red2" },
-	{ GPIO_CFG(90, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_pclk" },
-	{ GPIO_CFG(91, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_en" },
-	{ GPIO_CFG(92, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_vsync" },
-	{ GPIO_CFG(93, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_hsync" },
-	{ GPIO_CFG(94, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn2" },
-	{ GPIO_CFG(95, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn3" },
-	{ GPIO_CFG(96, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn4" },
-	{ GPIO_CFG(97, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn5" },
-	{ GPIO_CFG(98, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn6" },
-	{ GPIO_CFG(99, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_grn7" },
-	{ GPIO_CFG(100, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu3" },
-	{ GPIO_CFG(101, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu4" },
-	{ GPIO_CFG(102, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu5" },
-	{ GPIO_CFG(103, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu6" },
-	{ GPIO_CFG(104, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_blu7" },
-	{ GPIO_CFG(105, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red3" },
-	{ GPIO_CFG(106, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red4" },
-	{ GPIO_CFG(107, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red5" },
-	{ GPIO_CFG(108, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red6" },
-	{ GPIO_CFG(109, 1, GPIO_CFG_OUTPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "lcdc_red7" },
-};
 
-static int lcdc_toshiba_panel_power(int on)
+static int lcdc_panel_power(int on)
 {
-	int rc, i;
+	int rc = -EINVAL;
+	struct vreg *vreg_ldo20;	
+	int i;
 	struct msm_gpio *gp;
-
-	rc = display_common_power(on);
-	if (rc < 0) {
-		printk(KERN_ERR "%s display_common_power failed: %d\n",
-				__func__, rc);
-		return rc;
+	
+	vreg_ldo20 = vreg_get(NULL, "gp13");	
+	if (!vreg_ldo20) {		
+	pr_err("%s: VREG L20 get failed\n", __func__);	
 	}
-
-	if (on) {
+	rc = vreg_set_level(vreg_ldo20, 2800);		
+	if (rc) {			
+	pr_err("%s: VREG L20 set failed\n", __func__);	
+	}
+	if (on){
+		rc = vreg_enable(vreg_ldo20);		
+		if (rc)
+		{			
+			pr_err("%s: VREG L20 enable failed\n", __func__);			
+		}
 		rc = msm_gpios_enable(lcd_panel_gpios,
 				ARRAY_SIZE(lcd_panel_gpios));
 		if (rc < 0) {
 			printk(KERN_ERR "%s: gpio enable failed: %d\n",
 					__func__, rc);
 		}
-	} else {	/* off */
-		gp = lcd_panel_gpios;
-		for (i = 0; i < ARRAY_SIZE(lcd_panel_gpios); i++) {
-			/* ouput low */
-			gpio_set_value(GPIO_PIN(gp->gpio_cfg), 0);
-			gp++;
-		}
+
+	
 	}
-
-	return rc;
-}
-#endif 
-#endif
-
-static int lcdc_sharp_panel_power(int on)
-{
-	int rc, i;
-	struct msm_gpio *gp;
-
-	rc = display_common_power(on);
-	if (rc < 0) {
-		printk(KERN_ERR "%s display_common_power failed: %d\n",
-				__func__, rc);
-		return rc;
-	}
-
-	if (on) {
-		rc = msm_gpios_enable(lcd_sharp_panel_gpios,
-				ARRAY_SIZE(lcd_sharp_panel_gpios));
-		if (rc < 0) {
-			printk(KERN_ERR "%s: gpio enable failed: %d\n",
-				__func__, rc);
-		}
-	} else {	/* off */
-		gp = lcd_sharp_panel_gpios;
-		for (i = 0; i < ARRAY_SIZE(lcd_sharp_panel_gpios); i++) {
-			/* ouput low */
-			gpio_set_value(GPIO_PIN(gp->gpio_cfg), 0);
-			gp++;
-		}
-	}
-
-	return rc;
-}
-
-static int lcdc_panel_power(int on)
-{
-	int flag_on = !!on;
-	static int lcdc_power_save_on, lcdc_power_initialized;
-
-	if (lcdc_power_save_on == flag_on)
-		return 0;
-
-	lcdc_power_save_on = flag_on;
-
-	if (unlikely(!lcdc_power_initialized)) {
-		quickvx_mddi_client = 0;
-		display_common_init();
-		lcdc_power_initialized = 1;
-	}
-
-	if (machine_is_msm7x30_fluid())
-		return lcdc_sharp_panel_power(on);
 	else
-		return lcdc_toshiba_panel_power(on);
+	{
+	gp = lcd_panel_gpios;
+	for (i = 0; i < ARRAY_SIZE(lcd_panel_gpios); i++) {
+	/* ouput low */
+		gpio_set_value(GPIO_PIN(gp->gpio_cfg), 0);
+		gp++;
+		}
+	rc = vreg_disable(vreg_ldo20);		
+	if (rc) 
+	{			
+		pr_err("%s: VREG L20 disable failed\n", __func__);			
+	}
+
+	}
+
+	return 0;
 }
 
 static struct lcdc_platform_data lcdc_pdata = {
@@ -5166,26 +4433,8 @@ static void __init msm_fb_add_devices(void)
 	//msm_fb_register_device("tvout_device", NULL);
 #endif
 }
-/*
-static struct msm_panel_common_pdata lcdc_toshiba_panel_data = {
-	.gpio_num          = lcd_panel_spi_gpio_num,
-};
 
-static struct platform_device lcdc_toshiba_panel_device = {
-	.name   = "lcdc_toshiba_wvga",
-	.id     = 0,
-	.dev    = {
-		.platform_data = &lcdc_toshiba_panel_data,
-	}
-};
- */
-#if defined(CONFIG_MARIMBA_CORE) && \
-   (defined(CONFIG_MSM_BT_POWER) || defined(CONFIG_MSM_BT_POWER_MODULE))
-static struct platform_device msm_bt_power_device = {
-	.name = "bt_power",
-	.id     = -1
-};
-
+#ifdef CONFIG_MSM_BT 
 enum {
 	BT_RFR,
 	BT_CTS,
@@ -5767,15 +5016,11 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&android_pmem_device,
 	&msm_fb_device,
-#ifdef CONFIG_MSM_V4L2_VIDEO_OVERLAY_DEVICE
-	&msm_v4l2_video_overlay_device,
-#endif
 	&msm_migrate_pages_device,
-	&mddi_toshiba_device,
-	&lcdc_toshiba_panel_device,
 #ifdef CONFIG_MSM_ROTATOR
 	&msm_rotator_device,
 #endif
+	&lcdc_panel_device,
 	&android_pmem_adsp_device,
 	&android_pmem_audio_device,
 	&msm_device_i2c,
@@ -5796,25 +5041,6 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&msm_kgsl_3d0,
 	&msm_kgsl_2d0,
-#ifndef CONFIG_MSM_CAMERA_V4L2
-#ifdef CONFIG_MT9T013
-	&msm_camera_sensor_mt9t013,
-#endif
-#ifdef CONFIG_MT9D112
-	&msm_camera_sensor_mt9d112,
-#endif
-#ifdef CONFIG_WEBCAM_OV9726
-	&msm_camera_sensor_ov9726,
-#endif
-#ifdef CONFIG_S5K3E2FX
-	&msm_camera_sensor_s5k3e2fx,
-#endif
-#ifdef CONFIG_MT9P012
-	&msm_camera_sensor_mt9p012,
-#endif
-#ifdef CONFIG_MT9E013
-	&msm_camera_sensor_mt9e013,
-#endif
 #if defined(CONFIG_MACH_ARTHUR)
 #ifdef CONFIG_OV5640
     /*
@@ -5825,13 +5051,8 @@ static struct platform_device *devices[] __initdata = {
      */
     &msm_camera_sensor_ov5640,
 #endif
-#ifdef CONFIG_VX6953
-	&msm_camera_sensor_vx6953,
-#endif
-#ifdef CONFIG_SN12M0PZ
-	&msm_camera_sensor_sn12m0pz,
-#endif
-#endif
+#endif // #if defined(CONFIG_MACH_ARTHUR)
+
 	&msm_device_vidc_720p,
 #ifdef CONFIG_MSM_GEMINI
 	&msm_gemini_device,
@@ -7741,108 +6962,77 @@ static void __init msm7x30_init_early(void)
 	msm7x30_allocate_memory_regions();
 }
 
-/* MAY NEED TO COME BACK TO THIS LATER -- DM47021 */
+#if defined(CONFIG_ZTE_PLATFORM) && defined(CONFIG_F3_LOG)
+  unsigned int len = 0;
+  smem_global *global_tmp = (smem_global *)(MSM_RAM_LOG_BASE + PAGE_SIZE) ;
 
-static void __init msm7x30_fixup(struct tag *tags, char **cmdline,
-				 struct meminfo *mi)
+  len = global_tmp->f3log;
+
+  pr_info("length for f3 log is %d ++ \n", len);
+
+  if (len > 12)
+  {
+    len = 12;
+  }
+  else
+  {
+    len = len/2*2;
+  }
+    
+  pr_info("length = %d -- \n", len);
+  size = len;
+    
+  if (size)
+  {
+    reserve_bootmem(SDLOG_MEM_BASE, size * 0x100000, BOOTMEM_DEFAULT);
+  }
+
+  addr = phys_to_virt(SDLOG_MEM_BASE);
+  pr_info("allocating %lu M at %p (%lx physical) for F3\n",size, addr, __pa(addr));
+
+#endif
+
+#ifdef CONFIG_ZTE_PLATFORM
+/*
+#define ATAG_ZTEFTM 0x5d53cd73
+static int  parse_tag_zteftm(const struct tag *tags)
 {
-	for (; tags->hdr.size; tags = tag_next(tags)) {
-		if (tags->hdr.tag == ATAG_MEM && tags->u.mem.start ==
-							DDR1_BANK_BASE) {
-				ebi1_phys_offset = DDR1_BANK_BASE;
-				phys_add = DDR1_BANK_BASE;
-				break;
+	int flag = 0, find = 0;
+	struct tag *t = (struct tag *)tags;
+
+	for (; t->hdr.size; t = tag_next(t)) {
+		if (t->hdr.tag == ATAG_ZTEFTM) {
+			printk(KERN_DEBUG "find the zte ftm tag\n");
+			find = 1;
+			break;
 		}
 	}
+
+	if (find)
+		flag = t->u.revision.rev;
+	printk(KERN_INFO "jiangfeng:parse_tag_zteftm: zte FTM %s !\n", flag?"enable":"disable");
+	return flag;
 }
 
-MACHINE_START(MSM7X30_SURF, "QCT MSM7X30 SURF")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
+static void __init zte_fixup(struct machine_desc *desc, struct tag *tags,
+				  char **cmdline, struct meminfo *mi)
+{
+	g_zte_ftm_flag_fixup = parse_tag_zteftm((const struct tag *)tags);
+}
+*/
+int get_ftm_from_tag(void)
+{
+	return g_zte_ftm_flag_fixup;
+}
+EXPORT_SYMBOL(get_ftm_from_tag);
 
-MACHINE_START(MSM7X30_FFA, "QCT MSM7X30 FFA")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
-
-MACHINE_START(MSM7X30_FLUID, "QCT MSM7X30 FLUID")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
-
-MACHINE_START(MSM8X55_SURF, "QCT MSM8X55 SURF")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
-
-MACHINE_START(MSM8X55_FFA, "QCT MSM8X55 FFA")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
-MACHINE_START(MSM8X55_SVLTE_SURF, "QCT MSM8X55 SVLTE SURF")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
-MACHINE_START(MSM8X55_SVLTE_FFA, "QCT MSM8X55 SVLTE FFA")
-	.atag_offset = 0x100,
-	.map_io = msm7x30_map_io,
-	.reserve = msm7x30_reserve,
-	.init_irq = msm7x30_init_irq,
-	.init_machine = msm7x30_init,
-	.timer = &msm_timer,
-	.init_early = msm7x30_init_early,
-	.handle_irq = vic_handle_irq,
-	.fixup = msm7x30_fixup,
-MACHINE_END
+#endif
 
 MACHINE_START(ARTHUR, "arthur")
 	.boot_params = PLAT_PHYS_OFFSET + 0x100,
-#ifdef CONFIG_ZTE_PLATFORM
-		.fixup			= zte_fixup, 
-#endif
+//#ifdef CONFIG_ZTE_PLATFORM
+		//.fixup			= zte_fixup, 
+//#endif
 	.map_io = msm7x30_map_io,
 	.reserve = msm7x30_reserve,
 	.init_irq = msm7x30_init_irq,
