@@ -93,6 +93,8 @@ int vsync_mode = 1;
 
 #define MAX_BLIT_REQ 256
 
+u32 LcdPanleID=(u32)LCD_PANEL_NOPANEL;   //ZTE_LCD_LHT_20100611_001
+
 #define MAX_FBI_LIST 32
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
@@ -1905,7 +1907,7 @@ static int msm_fb_pan_display_ex(struct fb_info *info,
 		msm_fb_pan_idle(mfd);
 	return ret;
 }
-
+#if 0
 static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 			      struct fb_info *info)
 {
@@ -1915,14 +1917,13 @@ static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 	disp_commit.wait_for_finish = TRUE;
 	return msm_fb_pan_display_ex(info, &disp_commit);
 }
-
-static int msm_fb_pan_display_sub(struct fb_var_screeninfo *var,
+#endif
+static int msm_fb_pan_display(struct fb_var_screeninfo *var,
 			      struct fb_info *info)
 {
 	struct mdp_dirty_region dirty;
 	struct mdp_dirty_region *dirtyPtr = NULL;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
-	struct msm_fb_panel_data *pdata;
 //##### IMPORT OF skip_pan_display_pan STARTS HERE -Dm47021 #####
 struct fb_info *fbi = mfd->fbi; 
  	if(internal_fb_refcnt && (skip_pan_display_cnt--) ) { 
@@ -2022,6 +2023,8 @@ struct fb_info *fbi = mfd->fbi;
 	return 0;
 }
 //##### IMPORT OF skip_pan_display_pan ENDS HERE -Dm7021 #####
+
+#if 0
 	/*
 	 * If framebuffer is 2, io pen display is not allowed.
 	 */
@@ -2130,7 +2133,7 @@ struct fb_info *fbi = mfd->fbi;
 	++mfd->panel_info.frame_count;
 	return 0;
 }
-
+#endif
 static void msm_fb_commit_wq_handler(struct work_struct *work)
 {
 	struct msm_fb_data_type *mfd;
@@ -2146,7 +2149,7 @@ static void msm_fb_commit_wq_handler(struct work_struct *work)
 			mdp4_overlay_commit(info);
 	} else {
 		var = &fb_backup->disp_commit.var;
-		msm_fb_pan_display_sub(var, info);
+		//msm_fb_pan_display_sub(var, info);
 	}
 	mutex_lock(&mfd->sync_mutex);
 	mfd->is_committing = 0;
@@ -2263,7 +2266,6 @@ static int msm_fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	return 0;
 }
 
-#if 0
 static int msm_fb_set_par(struct fb_info *info)
 {
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
@@ -2300,7 +2302,7 @@ static int msm_fb_set_par(struct fb_info *info)
 	default:
 		return -EINVAL;
 	}
-
+#if 0
 	if ((mfd->var_pixclock != var->pixclock) ||
 		(mfd->hw_refresh && ((mfd->fb_imgType != old_imgType) ||
 				(mfd->var_pixclock != var->pixclock) ||
@@ -2314,7 +2316,7 @@ static int msm_fb_set_par(struct fb_info *info)
 	}
 	mfd->fbi->fix.line_length = msm_fb_line_length(mfd->index, var->xres,
 						       var->bits_per_pixel/8);
-
+#endif
 	if (blank) {
 		msm_fb_blank_sub(FB_BLANK_POWERDOWN, info, mfd->op_enable);
 		msm_fb_blank_sub(FB_BLANK_UNBLANK, info, mfd->op_enable);
@@ -2322,7 +2324,7 @@ static int msm_fb_set_par(struct fb_info *info)
 
 	return 0;
 }
-#endif
+
 static int msm_fb_stop_sw_refresher(struct msm_fb_data_type *mfd)
 {
 	if (mfd->hw_refresh)
