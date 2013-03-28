@@ -451,20 +451,6 @@ static int msm_fb_probe(struct platform_device *pdev)
 
 	pdev_list[pdev_list_cnt++] = pdev;
 	msm_fb_create_sysfs(pdev);
-	if (mfd->timeline == NULL) {
-		char timeline_name[MAX_TIMELINE_NAME_LEN];
-		snprintf(timeline_name, sizeof(timeline_name),
-			"mdp_fb_%d", mfd->index);
-		mfd->timeline = sw_sync_timeline_create(timeline_name);
-		if (mfd->timeline == NULL) {
-			pr_err("%s: cannot create time line", __func__);
-			return -ENOMEM;
-		} else {
-			mfd->timeline_value = 0;
-		}
-	}
-
-
 	return 0;
 }
 
@@ -980,7 +966,7 @@ static int msm_fb_blank_sub(int blank_mode, struct fb_info *info,
 			if (ret)
 				mfd->panel_power_on = curr_pwr_state;
 
-			msm_fb_release_timeline(mfd);
+			//msm_fb_release_timeline(mfd);
 			mfd->op_enable = TRUE;
 		}
 		break;
@@ -1772,7 +1758,7 @@ static int msm_fb_release(struct fb_info *info, int user)
 	pm_runtime_put(info->dev);
 	return ret;
 }
-
+#if 0
 void msm_fb_wait_for_fence(struct msm_fb_data_type *mfd)
 {
 	int i, ret = 0;
@@ -1818,7 +1804,7 @@ void msm_fb_release_timeline(struct msm_fb_data_type *mfd)
 	mfd->cur_rel_fence = 0;
 	mutex_unlock(&mfd->sync_mutex);
 }
-
+#endif
 DEFINE_SEMAPHORE(msm_fb_pan_sem);
 static int msm_fb_pan_idle(struct msm_fb_data_type *mfd)
 {
@@ -3658,7 +3644,7 @@ static int msmfb_handle_pp_ioctl(struct msm_fb_data_type *mfd,
 
 	return ret;
 }
-
+#if 0
 static int msmfb_handle_buf_sync_ioctl(struct msm_fb_data_type *mfd,
 						struct mdp_buf_sync *buf_sync)
 {
@@ -3680,6 +3666,7 @@ static int msmfb_handle_buf_sync_ioctl(struct msm_fb_data_type *mfd,
 		pr_err("%s:copy_from_user failed", __func__);
 		return ret;
 	}
+
 	mutex_lock(&mfd->sync_mutex);
 	for (i = 0; i < buf_sync->acq_fen_fd_cnt; i++) {
 		fence = sync_fence_fdget(acq_fen_fd[i]);
@@ -3705,6 +3692,7 @@ static int msmfb_handle_buf_sync_ioctl(struct msm_fb_data_type *mfd,
 		ret = -ENOMEM;
 		goto buf_sync_err_1;
 	}
+
 	/* create fence */
 	mfd->cur_rel_fence = sync_fence_create("mdp-fence",
 			mfd->cur_rel_sync_pt);
@@ -3744,7 +3732,7 @@ buf_sync_err_1:
 	mutex_unlock(&mfd->sync_mutex);
 	return ret;
 }
-
+#endif
 static int msmfb_display_commit(struct fb_info *info,
 						unsigned long *argp)
 {
@@ -4084,7 +4072,7 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 		if (ret)
 			return ret;
 
-		ret = msmfb_handle_buf_sync_ioctl(mfd, &buf_sync);
+		//ret = msmfb_handle_buf_sync_ioctl(mfd, &buf_sync);
 
 		if (!ret)
 			ret = copy_to_user(argp, &buf_sync, sizeof(buf_sync));

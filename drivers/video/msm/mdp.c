@@ -2326,7 +2326,7 @@ static int mdp_off(struct platform_device *pdev)
 			mfd->panel.type == LVDS_PANEL)
 		mdp4_lcdc_off(pdev);
 	else if (mfd->panel.type == WRITEBACK_PANEL)
-		mdp4_overlay_writeback_off(pdev);
+		//mdp4_overlay_writeback_off(pdev);
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	ret = panel_next_off(pdev);
@@ -3024,7 +3024,7 @@ static int mdp_probe(struct platform_device *pdev)
 			}
 			mdp4_wfd_init(0);
 			pdata->on = mdp4_overlay_writeback_on;
-			pdata->off = mdp4_overlay_writeback_off;
+			//pdata->off = mdp4_overlay_writeback_off;
 			mfd->dma_fnc = mdp4_writeback_overlay;
 			mfd->dma = &dma_wb_data;
 			mdp4_display_intf_sel(EXTERNAL_INTF_SEL, DTV_INTF);

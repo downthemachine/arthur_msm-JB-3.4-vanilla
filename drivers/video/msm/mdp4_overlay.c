@@ -434,7 +434,9 @@ void mdp4_overlay_dmae_cfg(struct msm_fb_data_type *mfd, int atv)
 		MDP_OUTP(MDP_BASE + 0xb3014, 0x1000080);
 		MDP_OUTP(MDP_BASE + 0xb4004, 0x67686970);
 	} else {
+#if defined(CONFIG_FB_MSM_DTV) // zte limit
 		mdp_vid_quant_set();
+#endif
 	}
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
@@ -3537,21 +3539,21 @@ int mdp4_overlay_commit(struct fb_info *info)
 
 	mdp4_overlay_mdp_perf_upd(mfd, 1);
 
-	msm_fb_wait_for_fence(mfd);
+	//msm_fb_wait_for_fence(mfd);
 
 	switch (mfd->panel.type) {
 	case MIPI_CMD_PANEL:
-		mdp4_dsi_cmd_pipe_commit(0, 1);
+		//mdp4_dsi_cmd_pipe_commit(0, 1);
 		break;
 	case MIPI_VIDEO_PANEL:
-		mdp4_dsi_video_pipe_commit(0, 1);
+		//mdp4_dsi_video_pipe_commit(0, 1);
 		break;
 	case LVDS_PANEL:
 	case LCDC_PANEL:
 		mdp4_lcdc_pipe_commit(0, 1);
 		break;
 	case DTV_PANEL:
-		mdp4_dtv_pipe_commit(0, 1);
+		//mdp4_dtv_pipe_commit(0, 1);
 		break;
 	case WRITEBACK_PANEL:
 		mdp4_wfd_pipe_commit(mfd, 0, 1);
@@ -3561,7 +3563,7 @@ int mdp4_overlay_commit(struct fb_info *info)
 		ret = -EINVAL;
 		break;
 	}
-	msm_fb_signal_timeline(mfd);
+	//msm_fb_signal_timeline(mfd);
 
 	mdp4_overlay_mdp_perf_upd(mfd, 0);
 	mdp4_unmap_sec_resource();
